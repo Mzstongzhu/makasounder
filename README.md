@@ -264,7 +264,9 @@ MAKASOUNDER-OL/              在线版
 - 登录 token 会保存在本机 `settings.ini` 中，请注意本机账户安全。
 
 ## 许可证
-
+应用本体无需商用许可，在二开过程中全部遵循 WTFPL v2，属于宽松许可，允许任意用途。
 Copyright © 2026 MakaZS-TonZhoo
 
 This work is free. You can redistribute it and/or modify it under the terms of the Do What The Fuck You Want To Public License, Version 2, as published by Sam Hocevar. See the [LICENSE](LICENSE) file for more details.
+
+应用内音频解析播放使用BASS库，该音频库版权归 Un4seen Developments Ltd. 所有，免费使用完全免费；商用时按照版权方要求，需向 [un4seen](https://www.un4seen.com/) 购买许可证。
