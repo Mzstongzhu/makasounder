@@ -1,0 +1,1 @@
+python server.py --port 8080 --music ./music --private
