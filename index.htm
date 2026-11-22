@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Jekyll v3.10.0">
+<title>MAKASOUNDER — 轻量音乐播放器</title>
+<meta name="description" content="轻量音乐播放器（离线版 + 在线版）（是的 又是个AI软件）">
+<link rel="canonical" href="https://sounder.makazs.xyz/">
+<meta property="og:title" content="MAKASOUNDER">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:description" content="轻量音乐播放器（离线版 + 在线版）（是的 又是个AI软件）">
+<meta property="og:url" content="http://sounder.makazs.xyz/">
+<meta property="og:site_name" content="makasounder">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MAKASOUNDER">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","description":"轻量音乐播放器（离线版 + 在线版）（是的 又是个AI软件）","headline":"MAKASOUNDER","name":"makasounder","url":"http://sounder.makazs.xyz/"}
+</script>
+<style>
+:root{
+  --bg:#ffffff;
+  --bg-soft:#f6f7f9;
+  --bg-code:#171b23;
+  --text:#161a21;
+  --text-2:#5b6472;
+  --text-3:#8b93a1;
+  --border:#e6e8ec;
+  --brand:#5b57e0;
+  --brand-2:#8b5cf6;
+  --brand-soft:rgba(91,87,224,.09);
+  --header-bg:rgba(255,255,255,.78);
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px -12px rgba(16,24,40,.18);
+  --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0c0e13;
+    --bg-soft:#141821;
+    --bg-code:#0f1218;
+    --text:#e8ebf0;
+    --text-2:#98a2b3;
+    --text-3:#6a7383;
+    --border:#222836;
+    --brand:#8b86ff;
+    --brand-2:#a78bfa;
+    --brand-soft:rgba(139,134,255,.13);
+    --header-bg:rgba(12,14,19,.78);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font-size:15.5px;
+  line-height:1.75;
+  color:var(--text);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- reading progress ---------- */
+.progress{
+  position:fixed;top:0;left:0;z-index:100;
+  height:2px;width:100%;
+  background:linear-gradient(90deg,var(--brand),var(--brand-2));
+  transform:scaleX(0);transform-origin:0 50%;
+  transition:transform .12s linear;
+  pointer-events:none;
+}
+
+/* ---------- header ---------- */
+.site-header{
+  position:sticky;top:0;z-index:60;
+  height:60px;
+  display:flex;align-items:center;gap:14px;
+  padding:0 24px;
+  background:var(--header-bg);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;font-weight:700;font-size:15px;letter-spacing:.01em}
+.brand:hover{text-decoration:none}
+.brand-logo{
+  width:30px;height:30px;border-radius:9px;flex:none;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff;font-size:15px;line-height:1;
+  box-shadow:0 6px 16px -8px var(--brand);
+}
+.badge{
+  font-size:11px;font-weight:600;line-height:1.6;
+  color:var(--brand);background:var(--brand-soft);
+  padding:1px 8px;border-radius:99px;
+}
+.header-nav{margin-left:auto;display:flex;align-items:center;gap:4px}
+.header-nav a{
+  padding:6px 12px;border-radius:8px;
+  color:var(--text-2);font-size:14px;font-weight:500;
+  transition:background .15s,color .15s;
+}
+.header-nav a:hover{background:var(--bg-soft);color:var(--text);text-decoration:none}
+.header-nav .gh{
+  margin-left:6px;color:var(--text);
+  border:1px solid var(--border);
+}
+.header-nav .gh:hover{border-color:var(--text-3)}
+.menu-toggle{
+  display:none;margin-left:auto;
+  width:38px;height:38px;flex:none;
+  align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:9px;
+  background:transparent;color:var(--text);cursor:pointer;
+  font-size:17px;line-height:1;
+}
+
+/* ---------- layout ---------- */
+.layout{
+  display:grid;
+  grid-template-columns:250px minmax(0,1fr);
+  gap:56px;
+  max-width:1240px;
+  margin:0 auto;
+  padding:0 24px;
+  align-items:start;
+}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:sticky;top:60px;
+  height:calc(100vh - 60px);
+  overflow-y:auto;
+  padding:32px 16px 48px 0;
+  scrollbar-width:thin;
+}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.nav-group{margin-bottom:22px}
+.nav-title{
+  font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--text-3);
+  padding:0 12px 6px;
+}
+.sidebar a{
+  display:block;
+  padding:5px 12px;
+  margin-left:-2px;
+  border-left:2px solid transparent;
+  border-radius:0 7px 7px 0;
+  color:var(--text-2);
+  font-size:13.8px;
+  line-height:1.6;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.sidebar a:hover{color:var(--text);background:var(--bg-soft);text-decoration:none}
+.sidebar a.active{
+  color:var(--brand);font-weight:600;
+  border-left-color:var(--brand);
+  background:var(--brand-soft);
+}
+
+/* ---------- content ---------- */
+.content{
+  min-width:0;
+  max-width:880px;
+  padding:44px 0 120px;
+}
+.content h1{
+  font-size:clamp(32px,4.2vw,44px);
+  line-height:1.15;
+  letter-spacing:-.025em;
+  font-weight:800;
+  margin:0 0 14px;
+}
+.content h2{
+  font-size:23px;
+  font-weight:700;
+  letter-spacing:-.015em;
+  margin:60px 0 18px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+  scroll-margin-top:84px;
+}
+.content h3{
+  font-size:17.5px;
+  font-weight:650;
+  margin:34px 0 12px;
+  scroll-margin-top:84px;
+}
+.content h3::before{
+  content:"";display:inline-block;
+  width:6px;height:6px;border-radius:2px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  margin-right:10px;vertical-align:3px;
+}
+.content p{margin:12px 0}
+.content ul,.content ol{padding-left:22px;margin:12px 0}
+.content li{margin:5px 0}
+.content li>ul,.content li>ol{margin:5px 0}
+.content strong{font-weight:650}
+.content em{font-style:normal;color:var(--brand);font-weight:600}
+
+/* anchor */
+.anchor{
+  margin-left:6px;
+  color:var(--text-3);
+  opacity:0;
+  font-weight:400;
+  transition:opacity .15s,color .15s;
+}
+h2:hover .anchor,h3:hover .anchor{opacity:1}
+.anchor:hover{color:var(--brand);text-decoration:none}
+
+/* ---------- hero ---------- */
+.hero{padding:8px 0 4px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:600;
+  color:var(--brand);background:var(--brand-soft);
+  padding:4px 11px;border-radius:99px;
+  margin-bottom:18px;
+}
+.hero p.sub{
+  font-size:17px;color:var(--text-2);
+  margin:0 0 26px;
+  max-width:640px;
+}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;
+  border-radius:10px;
+  font-size:14.5px;font-weight:600;line-height:1.4;
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:transform .18s,box-shadow .18s,background .18s,border-color .18s,color .18s;
+}
+.btn:hover{text-decoration:none}
+.btn-primary{
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff;
+  box-shadow:0 8px 22px -12px var(--brand);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px -12px var(--brand)}
+.btn-ghost{
+  background:var(--bg);color:var(--text);
+  border-color:var(--border);
+}
+.btn-ghost:hover{background:var(--bg-soft);border-color:var(--text-3);transform:translateY(-1px)}
+.btn-text{color:var(--text-2);padding-left:8px;padding-right:8px}
+.btn-text:hover{color:var(--brand);background:var(--brand-soft)}
+
+/* ---------- callout ---------- */
+.callout{
+  position:relative;
+  margin:16px 0;
+  padding:14px 18px 14px 18px;
+  background:var(--bg-soft);
+  border:1px solid var(--border);
+  border-left:3px solid var(--brand);
+  border-radius:10px;
+  font-size:14.6px;
+  color:var(--text-2);
+}
+.callout p{margin:0}
+.callout p+p{margin-top:8px}
+.callout a{font-weight:500}
+
+/* author note */
+.note{
+  margin:16px 0;
+  padding:14px 18px;
+  background:var(--bg-soft);
+  border:1px dashed var(--border);
+  border-radius:10px;
+  font-size:13.5px;
+  line-height:1.8;
+  color:var(--text-3);
+}
+
+/* ---------- download cards ---------- */
+.download-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+  gap:14px;
+  margin:22px 0 8px;
+}
+.dl-card{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--bg);
+  color:inherit;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+.dl-card:hover{
+  text-decoration:none;
+  transform:translateY(-2px);
+  border-color:var(--brand);
+  box-shadow:var(--shadow);
+}
+.dl-icon{
+  width:40px;height:40px;flex:none;
+  display:grid;place-items:center;
+  border-radius:11px;
+  background:var(--brand-soft);
+  color:var(--brand);
+  font-size:19px;line-height:1;
+}
+.dl-body{min-width:0}
+.dl-title{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:15px;font-weight:700;color:var(--text);
+  margin-bottom:4px;
+}
+.pill{
+  font-size:11px;font-weight:600;
+  padding:1px 8px;border-radius:99px;
+  background:var(--brand-soft);color:var(--brand);
+}
+.pill.alt{background:rgba(16,163,74,.1);color:#0f9d58}
+.dl-desc{font-size:13.6px;color:var(--text-2);line-height:1.6}
+.dl-arrow{
+  margin-left:auto;align-self:center;
+  color:var(--text-3);font-size:16px;
+  transition:transform .2s,color .2s;
+}
+.dl-card:hover .dl-arrow{transform:translateX(3px);color:var(--brand)}
+
+/* ---------- table ---------- */
+.table-wrap{
+  margin:18px 0;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse;width:100%;font-size:14.2px}
+th,td{
+  padding:11px 16px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+thead th{
+  background:var(--bg-soft);
+  font-weight:650;
+  font-size:13.4px;
+  color:var(--text-2);
+  white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-soft)}
+td code{white-space:nowrap}
+
+/* ---------- code ---------- */
+code{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  font-size:.86em;
+  padding:.15em .42em;
+  border-radius:5px;
+  background:var(--brand-soft);
+  color:var(--brand);
+}
+pre{
+  margin:18px 0;
+  padding:16px 18px;
+  border-radius:var(--radius);
+  background:var(--bg-code);
+  color:#dfe4ec;
+  overflow-x:auto;
+  font-size:13.4px;
+  line-height:1.7;
+  border:1px solid rgba(255,255,255,.06);
+}
+pre code{
+  background:none;
+  color:inherit;
+  padding:0;
+  font-size:inherit;
+}
+
+/* ---------- footer ---------- */
+.site-footer{
+  margin-top:72px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+  font-size:13.5px;
+  color:var(--text-3);
+}
+.site-footer p{margin:4px 0}
+
+/* ---------- responsive ---------- */
+@media (max-width:1023px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0;padding:0 20px}
+  .sidebar{
+    position:fixed;
+    top:60px;left:0;bottom:0;
+    width:280px;height:auto;
+    padding:20px 14px 40px;
+    background:var(--bg);
+    border-right:1px solid var(--border);
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    z-index:55;
+    overflow-y:auto;
+  }
+  .sidebar.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.25)}
+  .menu-toggle{display:flex}
+  .header-nav a:not(.gh){display:none}
+  .header-nav .gh{margin-left:0}
+  .content{padding:32px 0 100px}
+}
+@media (max-width:560px){
+  .site-header{padding:0 16px;gap:10px}
+  .brand-text{font-size:14px}
+  .badge{display:none}
+  .layout{padding:0 16px}
+  .content h2{margin-top:48px}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<header class="site-header">
+  <a class="brand" href="#intro">
+    <span class="brand-logo">♪</span>
+    <span class="brand-text">MAKASOUNDER</span>
+    <span class="badge">v1.0.0.1</span>
+  </a>
+  <nav class="header-nav">
+    <a href="#download">下载</a>
+    <a href="#features">功能</a>
+    <a href="#build">构建</a>
+    <a href="#limits">限制</a>
+    <a class="gh" href="https://github.com/Mzstongzhu/makasounder" target="_blank" rel="noopener">GitHub ↗</a>
+  </nav>
+  <button class="menu-toggle" id="menuToggle" aria-label="打开导航">☰</button>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-group">
+      <div class="nav-title">概览</div>
+      <a href="#intro">简介</a>
+      <a href="#download">下载</a>
+      <a href="#compare">两个版本怎么选</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-title">使用</div>
+      <a href="#features">功能</a>
+      <a href="#shortcuts">快捷键</a>
+      <a href="#usage">基本操作</a>
+      <a href="#float">悬浮窗</a>
+      <a href="#lyrictool">歌词制作器</a>
+      <a href="#online">服务器 / 搜索 / 上传</a>
+      <a href="#cli">命令行</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-title">开发</div>
+      <a href="#taglib">技术选型</a>
+      <a href="#build">构建</a>
+      <a href="#server">服务端</a>
+      <a href="#layout-dir">目录结构</a>
+      <a href="#config">配置文件</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-title">其他</div>
+      <a href="#limits">已知限制</a>
+      <a href="#license">许可证</a>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="intro">
+      <h1>MAKASOUNDER <a class="anchor" href="#intro">#</a></h1>
+      <p class="sub">轻量音乐播放器（离线版 + 在线版）（是的 又是个AI软件）</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER.exe">↓ 下载离线版</a>
+        <a class="btn btn-ghost" href="https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER-OL.exe">↓ 下载在线版</a>
+        <a class="btn btn-text" href="https://github.com/Mzstongzhu/makasounder" target="_blank" rel="noopener">GitHub 仓库 ↗</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <p><strong>冷知识</strong>：你可以直接访问 <a href="https://github.com/Mzstongzhu/makasounder" target="_blank" rel="noopener">GitHub 仓库</a> 看代码、提 Issue，或者单纯点个 Star 让作者高兴一下。</p>
+    </div>
+
+    <div class="callout">
+      <p><a href="https://sounder.makazs.xyz/"><em>官方网站</em></a>：盘点那些最不稳定也最没用的官网</p>
+    </div>
+
+    <div class="callout">
+      <p>我的软件只为了最佳的播放体验而生 如果你觉得当前版本对你而言太卡了 不妨试试其他版本 或者二开个新版本 关于许可证问题 页面底部会强调 不如现在就让我们进入正题吧</p>
+    </div>
+
+    <p>你说的对，但是 MAKASOUNDER 是一个纯 Win32 的轻量音乐播放器，面向 Windows 7 / 10 / 11（32 位优先）。没有 Electron，没有 WebView，没有持续自绘刷新；主界面、播放列表、歌词、设置和歌词制作器全部使用系统原生控件。</p>
+
+    <div class="note">
+      （我不得不说 我上传的时间太晚了我已经忘了我改了什么 所以以下内容是一个与本项目无关的AI在阅读旧文档和RC文件后生成的 对不起 但是还是建议你自己去用用 毕竟都读到这了嘛 我会自己做插件的 插件的开发绝对绝对不会有任何AI插手 当然啦 你们也可以私下开发插件 总之额开源万岁我没话说了）
+    </div>
+
+    <p id="download">项目包含两个版本，可以直接点击下载其 EXE 二进制文件，或者点此下载其源码 <a href="https://github.com/Mzstongzhu/makasounder/archive/refs/tags/1.0.0.1.zip">ZIP 包</a> 或 <a href="https://github.com/Mzstongzhu/makasounder/archive/refs/tags/1.0.0.1.tar.gz">tar 包</a>：</p>
+
+    <div class="download-grid">
+      <a class="dl-card" href="https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER.exe">
+        <span class="dl-icon">⭳</span>
+        <span class="dl-body">
+          <span class="dl-title">MAKASOUNDER <span class="pill">离线版</span></span>
+          <span class="dl-desc">纯本地播放器，不联网、不上传任何数据。</span>
+        </span>
+        <span class="dl-arrow">→</span>
+      </a>
+      <a class="dl-card" href="https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER-OL.exe">
+        <span class="dl-icon">⭳</span>
+        <span class="dl-body">
+          <span class="dl-title">MAKASOUNDER-OL <span class="pill alt">在线版</span></span>
+          <span class="dl-desc">在离线版全部功能之上，增加连接社区服务器、搜索歌曲、流式播放、下载、上传审核等能力。</span>
+        </span>
+        <span class="dl-arrow">→</span>
+      </a>
+    </div>
+
+    <p>两个版本可以同时保留、分别使用，互不影响。</p>
+
+    <!-- ================= 两个版本怎么选 ================= -->
+    <h2 id="compare">两个版本怎么选 <a class="anchor" href="#compare">#</a></h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>功能</th><th>离线版</th><th>在线版</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>本地播放</td><td>✅</td><td>✅</td></tr>
+          <tr><td>悬浮窗 / 歌词制作器 / 文件关联</td><td>✅</td><td>✅</td></tr>
+          <tr><td>在线搜索 / 流式播放 / 下载</td><td>—</td><td>✅</td></tr>
+          <tr><td>上传音乐并提交审核</td><td>—</td><td>✅</td></tr>
+          <tr><td>需要服务器</td><td>否</td><td>可选（不配置时等价于离线播放器）</td></tr>
+          <tr><td>网络访问</td><td>无</td><td>仅访问你配置的服务器</td></tr>
+          <tr><td>额外链接库</td><td>—</td><td><code>ws2_32</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>只需要本地播放，用离线版；有自己的曲库服务器、想和朋友共享曲库，或者想往曲库里传歌，用在线版。</p>
+
+    <!-- ================= 功能 ================= -->
+    <h2 id="features">功能 <a class="anchor" href="#features">#</a></h2>
+
+    <h3 id="features-both">两个版本都有</h3>
+
+    <ul>
+      <li>播放 MP3 / WAV / WMA；播放失败时自动走 <strong>BASS → MCI → 清理 ID3 标签的临时副本 → DirectShow</strong> 回退链。可选 BASS 后端扩展 FLAC / AAC / OPUS / APE 等格式。</li>
+      <li>专门处理“封面/标签损坏导致 MCI 或 DirectShow 打不开 MP3”的情况：自动生成只含音频帧的临时副本，切歌或退出时删除。</li>
+      <li>启动时自动递归扫描 <strong>exe 所在目录</strong> 的音频并导入播放列表；新文件超过 200 首会先询问是否继续。</li>
+      <li>标准 Win32 主窗口：工具栏、播放列表（虚拟列表）、歌词框、进度条、音量、状态栏。</li>
+      <li>内嵌封面读取与缓存：ID3v2 <code>APIC</code>、FLAC / Ogg Vorbis <code>PICTURE</code>、MP4 <code>covr</code>，无封面时使用内置占位图。</li>
+      <li>歌词回退链：内嵌同步歌词（SYLT 或带时间戳的 USLT）→ 同名 <code>.lrc</code> → 标题标签对应的 <code>.lrc</code> → 内嵌纯文本。</li>
+      <li>桌面悬浮窗：置顶、无标题栏、简单原生按钮；拖到屏幕边缘松手后通过约 240ms 缓动动画缩成圆形封面球。鼠标移上去自动展开，移开自动缩回；拖动球离开边缘才会保持展开。动画只在状态切换时运行，不常驻刷新。</li>
+      <li>MP3 文件关联（只修改 <code>HKCU</code>），支持双击打开主界面或 <code>--float</code> 直达悬浮窗。</li>
+      <li>原生设置对话框：贴边缩略开关、双击 MP3 的行为、注册 / 移除关联。</li>
+      <li>原生“歌词制作器”：第一遍边听边逐行输入歌词（回车添加），第二遍回到开头逐行打轴（F8 或回车），支持拖动顶部进度条、删除、撤销、双击试听、导入和保存 LRC。</li>
+      <li>支持 Windows 标准媒体键：笔记本 Fn 播放/暂停、上一首、下一首、停止；程序窗口或歌词制作器在前台时生效。</li>
+      <li>多实例启动，不强制单实例。</li>
+    </ul>
+
+    <h3 id="features-online">在线版额外有的</h3>
+
+    <ul>
+      <li><strong>「工具 → 在线搜索歌曲…」</strong>（<code>Ctrl+F</code>）：搜索、流式播放、下载并加入播放列表。
+        <ul>
+          <li>「搜索」：按关键词搜。</li>
+          <li>「流式播放」：选中结果直接开播，先听为快。缓存细节以源码为准。</li>
+          <li>「下载并加入列表」：下载完直接追加到播放列表。</li>
+        </ul>
+      </li>
+      <li><strong>「工具 → 上传音乐…」</strong>（<code>Ctrl+U</code>）：选一个音频文件，提交审核。不是传完就进曲库，要服主审核。</li>
+      <li><strong>「工具 → 服务器设置…」</strong>：配置服务器地址、用户名、密码；支持测试连接、登录、注册、退出登录。
+        <ul>
+          <li>公开服务器不用登录也能搜、能播。</li>
+          <li>私有服务器就老老实实登录或注册。</li>
+        </ul>
+      </li>
+      <li>下载的歌曲带歌词/封面时，会随文件一起缓存到本地；离线状态下仍可播放已缓存的歌曲。</li>
+      <li>下载缓存位于 <code>%APPDATA%\MAKASOUNDER\cache\</code>，文件名形如 <code>歌曲名_曲目ID.mp3</code>（保留源文件扩展名），重复下载会直接复用缓存。具体以源码为准。</li>
+    </ul>
+
+    <!-- ================= 快捷键 ================= -->
+    <h2 id="shortcuts">快捷键 <a class="anchor" href="#shortcuts">#</a></h2>
+
+    <p>两个版本都有的：</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>快捷键</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td><code>Space</code></td><td>播放 / 暂停</td></tr>
+          <tr><td><code>Ctrl+O</code></td><td>添加文件</td></tr>
+          <tr><td><code>Ctrl+Left</code> / <code>Ctrl+Right</code></td><td>上一首 / 下一首</td></tr>
+          <tr><td><code>Ctrl+Up</code> / <code>Ctrl+Down</code></td><td>音量</td></tr>
+          <tr><td>媒体键</td><td>播放/暂停、上一首、下一首、停止</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>在线版额外：</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>快捷键</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td><code>Ctrl+F</code></td><td>在线搜索</td></tr>
+          <tr><td><code>Ctrl+U</code></td><td>上传音乐</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ================= 技术选型 ================= -->
+    <h2 id="taglib">为什么没有用 TagLib / 没有绑定 BASS 开发库 <a class="anchor" href="#taglib">#</a></h2>
+
+    <p>原始方案里的 BASS + TagLib 要额外 SDK、库文件和 32 位编译配置，往 Dev-C++ 的 MinGW 里一塞就一堆事。所以这里做了两个兼容处理：</p>
+
+    <ol>
+      <li><strong>元数据</strong>：内置轻量解析器，直接读 ID3v2.3/2.4（含 APIC / USLT / SYLT / ID3v1）、FLAC、Ogg Vorbis、Opus、MP4/M4A、WAV、APEv2。没有 TagLib 静态库，也没有额外 DLL。</li>
+      <li><strong>音频</strong>：优先动态加载 exe 同目录的 <code>bass.dll</code>；有 BASS 就自动启用，并尝试加载 <code>bass\*.dll</code> 插件。没有 BASS 就回退到 Windows 自带 MCI，再失败就试去掉 ID3 标签的临时副本，最后 DirectShow。普通 MP3 和大多数带封面/特殊标签的 MP3 开箱即用；想要更多格式，把 BASS 官方 DLL 丢进程序目录即可，不用重新编译。</li>
+    </ol>
+
+    <p>所以：不发售、不分发 BASS DLL；用 BASS 就自己遵守 un4seen 的授权条款。</p>
+
+    <!-- ================= 构建 ================= -->
+    <h2 id="build">构建 <a class="anchor" href="#build">#</a></h2>
+
+    <p>两个版本都使用 Dev-C++ 自带的 MinGW（GCC 9.2.0，位于 <code>C:\Program Files (x86)\Dev-Cpp\MinGW32\bin</code>），C++17，Unicode，静态链接 libgcc / libstdc++。</p>
+
+    <h3 id="build-bat">方法一：批处理（推荐）</h3>
+
+    <p>离线版：</p>
+
+<pre><code>cd MAKASOUNDER
+build.bat</code></pre>
+
+    <p>生成 <code>build\MAKASOUNDER.exe</code>。</p>
+
+    <p>在线版：</p>
+
+<pre><code>cd MAKASOUNDER-OL
+build.bat</code></pre>
+
+    <p>生成 <code>build\MAKASOUNDER-OL.exe</code>。</p>
+
+    <p>Dev-C++ 装在别处就改 <code>build.bat</code> 里的 <code>MINGW</code> 变量。脚本会自动用 8.3 短路径，免得 <code>C:\Program Files</code> 里的空格把 <code>windres</code> 预处理搞崩。</p>
+
+    <h3 id="build-dev">方法二：Dev-C++ 工程</h3>
+
+    <ul>
+      <li>离线版：打开 <code>MAKASOUNDER.dev</code>，编译。</li>
+      <li>在线版：打开 <code>MAKASOUNDER-OL.dev</code>，编译（额外链接 <code>ws2_32</code>）。</li>
+    </ul>
+
+    <p>工程里已经配好：</p>
+
+    <ul>
+      <li>C++17</li>
+      <li>Unicode</li>
+      <li>静态链接 libgcc / libstdc++</li>
+      <li>链接 <code>comctl32</code>, <code>gdiplus</code>, <code>shlwapi</code>, <code>winmm</code>, <code>ole32</code>, <code>shell32</code>, <code>comdlg32</code> 等系统库（在线版另加 <code>ws2_32</code>）</li>
+      <li>资源文件 <code>MAKASOUNDER.rc</code>：图标、占位封面、清单、设置、歌词制作器、快捷键；在线版另含服务器设置、在线搜索、上传音乐对话框</li>
+    </ul>
+
+    <h3 id="build-make">方法三：Makefile</h3>
+
+    <p>离线版在配好 <code>g++</code> / <code>windres</code> 的 MinGW 命令行里：</p>
+
+<pre><code>mingw32-make</code></pre>
+
+    <p>在线版用 Dev-C++ 工程或 <code>build.bat</code>。</p>
+
+    <!-- ================= 使用 ================= -->
+    <h2 id="usage">使用 <a class="anchor" href="#usage">#</a></h2>
+
+    <h3 id="usage-basic">基本操作</h3>
+
+    <ul>
+      <li>点“添加音乐”或“添加文件夹”，也可以把文件 / 文件夹直接拖进主窗口。</li>
+      <li>启动时会自动扫描程序所在目录，把音频加入播放列表。目录太大也可以在“工具 → 扫描软件目录音频”手动重扫。
+        <ul>
+          <li>扫描范围是 exe 所在目录及其子目录，只追加还没在列表里的文件。</li>
+          <li>一次发现超过 200 首新文件会先弹窗确认；选“否”就这次不导入。</li>
+        </ul>
+      </li>
+      <li>双击播放列表里的歌开始播放；回车播放选中项，Delete 删除选中项。</li>
+      <li>“悬浮窗”按钮：隐藏主界面，显示置顶小窗。</li>
+      <li>设置：“工具 → 设置”。文件关联只写当前用户。</li>
+    </ul>
+
+    <h3 id="float">悬浮窗</h3>
+
+    <ul>
+      <li>拖封面 / 文字区域移动。</li>
+      <li>拖到屏幕边缘松手，约 240ms 缓动收成圆形封面球。</li>
+      <li>鼠标指上去自动展开，移开自动缩回。</li>
+      <li>单击球也会临时展开；鼠标一离开还是缩回，不会赖着不走。</li>
+      <li>拖球移动；把球拖离边缘后，窗口才会作为普通展开窗口保留。</li>
+      <li>右键菜单：返回主界面、展开 / 收起、贴边缩略开关、重置位置、退出。</li>
+    </ul>
+
+    <h3 id="lyrictool">歌词制作器</h3>
+
+    <ol>
+      <li>打开歌曲，菜单“工具 → 歌词制作器”。</li>
+      <li>第一遍：点“播放”，在右侧输入框里边听边输入歌词，按回车或“添加行”；一行一行加到左侧列表。</li>
+      <li>第二遍：点“从头开始”，播放回到 0:00，并自动选中第一行还没打轴的歌词。顶部进度条可以直接拖动定位。</li>
+      <li>听到某一行时按 F8（或点“打轴”/回车），把当前时间写进选中行，然后自动跳到下一行。</li>
+      <li>双击已打轴的行可以跳转试听；撤销、删除行用来修正。</li>
+      <li>点“保存 LRC”，歌词写到歌曲同目录的同名 <code>.lrc</code>。</li>
+    </ol>
+
+    <!-- ================= 在线版 ================= -->
+    <h2 id="online">在线版：服务器、搜索与上传 <a class="anchor" href="#online">#</a></h2>
+
+    <h3 id="online-config">配置服务器</h3>
+
+    <p>菜单「工具 → 服务器设置…」：</p>
+
+    <ol>
+      <li>填服务器地址，例如 <code>http://192.168.1.100:8080</code>（客户端目前只支持 HTTP）。</li>
+      <li>点「测试连接」，显示连接成功就是网络通了。</li>
+      <li>公开服务器可以直接搜索和播放；私有服务器填用户名、密码，然后「登录」或「注册」。</li>
+      <li>想换账号就点「退出登录」。</li>
+      <li>点「确定」后，地址、用户名、登录 token 会写入 <code>%APPDATA%\MAKASOUNDER\settings.ini</code>，下次启动自动连接。</li>
+    </ol>
+
+    <h3 id="online-search">在线搜索</h3>
+
+    <p>菜单「工具 → 在线搜索歌曲…」（<code>Ctrl+F</code>）：</p>
+
+    <ol>
+      <li>输入关键词，点「搜索」或回车。</li>
+      <li>选中结果点「流式播放」：直接开播，先听为快。</li>
+      <li>选中结果点「下载并加入列表」：下载完追加到播放列表。</li>
+    </ol>
+
+    <p>旧文档里的“播放选中 / 添加选中 / 下载选中”已经过时，现在界面上就是上面这几个按钮。</p>
+
+    <h3 id="online-upload">上传音乐</h3>
+
+    <p>菜单「工具 → 上传音乐…」（<code>Ctrl+U</code>）：</p>
+
+    <ol>
+      <li>点「浏览」选一个音频文件。</li>
+      <li>点「提交审核」。</li>
+      <li>状态栏会显示提交结果。提交后不是立刻进曲库，要服主审核。</li>
+    </ol>
+
+    <p>审核怎么审、文件存哪、接口长什么样，看服务端说明。</p>
+
+    <h3 id="online-offline">离线使用</h3>
+
+    <p>在线版本身也是完整的离线播放器：不配置服务器时，本地功能照常可用；只是搜不了在线曲库，也传不了歌。</p>
+
+    <!-- ================= 服务端 ================= -->
+    <h2 id="server">服务端 <a class="anchor" href="#server">#</a></h2>
+
+    <p>服务端在在线版目录的 <code>server/</code>，纯 Python 标准库实现，Windows 和 Linux 都能直接跑：</p>
+
+<pre><code># Windows
+python server.py --port 8080 --music ./music
+
+# Linux
+python3 server.py --port 8080 --music ./music</code></pre>
+
+    <p>把音频丢进 <code>music/</code> 目录就能被搜索；同名 <code>.lrc</code> 会被当作歌词返回，内嵌 <code>APIC</code> 封面可被下载。支持 <code>--private</code> 私有模式（需登录），默认公开模式。</p>
+
+    <p>完整部署说明、参数、API 和 systemd / Windows 后台运行方式见 <a href="https://github.com/Mzstongzhu/makasounder/blob/main/MAKASOUNDER-OL/server/README.md">server/README.md</a>。</p>
+
+    <!-- ================= 命令行 ================= -->
+    <h2 id="cli">命令行 <a class="anchor" href="#cli">#</a></h2>
+
+<pre><code>MAKASOUNDER.exe "C:\Music\song.mp3"
+MAKASOUNDER.exe --float "C:\Music\song.mp3"
+MAKASOUNDER.exe --float</code></pre>
+
+    <p>在线版把 <code>MAKASOUNDER.exe</code> 换成 <code>MAKASOUNDER-OL.exe</code>，参数一样。</p>
+
+    <ul>
+      <li>普通启动：显示主界面并播放文件。</li>
+      <li><code>--float</code>：不创建主界面，直接显示悬浮窗并播放。</li>
+      <li>文件关联注册的默认命令<strong>不带</strong> <code>--float</code>；设置里可以选“双击 MP3 时直达悬浮窗”。</li>
+    </ul>
+
+    <!-- ================= 目录 ================= -->
+    <h2 id="layout-dir">目录 <a class="anchor" href="#layout-dir">#</a></h2>
+
+    <p>两个版本目录可以并排，也可以把在线版放在离线版目录下；按实际布局调整。</p>
+
+<pre><code>MAKASOUNDER/                 离线版
+├─ src/                      C++ 源码
+├─ assets/                   图标、占位封面
+├─ build/                    构建输出
+├─ MAKASOUNDER.rc            资源
+├─ app.manifest              Windows 7–11 兼容清单
+├─ build.bat                 MinGW 构建脚本
+├─ MAKASOUNDER.dev           Dev-C++ 工程
+├─ Makefile
+└─ README.md
+
+MAKASOUNDER-OL/              在线版
+├─ src/                      C++ 源码（含 http_client / json / online）
+├─ assets/                   图标、占位封面
+├─ server/                   社区服务器（Python，Windows/Linux）
+│  ├─ server.py
+│  └─ README.md
+├─ build/                    构建输出
+├─ dist/                     可直接运行的副本
+├─ MAKASOUNDER.rc            资源（含服务器设置、在线搜索、上传音乐对话框）
+├─ app.manifest
+├─ build.bat                 MinGW 构建脚本
+├─ MAKASOUNDER-OL.dev        Dev-C++ 工程
+└─ README.md</code></pre>
+
+    <!-- ================= 配置文件 ================= -->
+    <h2 id="config">配置文件 <a class="anchor" href="#config">#</a></h2>
+
+    <p><code>%APPDATA%\MAKASOUNDER\settings.ini</code>（UTF-8）：</p>
+
+    <ul>
+      <li>音量</li>
+      <li>主窗口位置 / 大小</li>
+      <li>悬浮窗位置、是否小窗、贴边开关</li>
+      <li>双击 MP3 的偏好</li>
+      <li>上次打开目录</li>
+      <li>（在线版）服务器地址、用户名、登录 token</li>
+    </ul>
+
+    <p>下载缓存（在线版）：<code>%APPDATA%\MAKASOUNDER\cache\</code></p>
+
+    <!-- ================= 已知限制 ================= -->
+    <h2 id="limits">已知限制 <a class="anchor" href="#limits">#</a></h2>
+
+    <ul>
+      <li>无 BASS 时，FLAC / AAC / OPUS / APE 等格式可能只有标签和封面，不能播放；请放入 32 位 BASS 官方 DLL（<code>bass.dll</code>）和对应插件（如 <code>bassflac.dll</code>、<code>bass_aac.dll</code>、<code>bassopus.dll</code>、<code>basswma.dll</code>、<code>bass_ape.dll</code>）。</li>
+      <li>MCI 在部分 Windows 版本上音量命令无效，音量以系统混音器为准。</li>
+      <li>临时无标签副本放在 <code>%TEMP%\MAKASOUNDER</code>，切歌或退出时删除；程序被强制结束的话，残留文件可以直接删，不影响原文件。</li>
+      <li>DirectShow 回退依赖系统已安装的解码器；极少数损坏文件仍可能无法播放。</li>
+      <li>Windows 10/11 的默认应用保护可能覆盖 <code>HKCU\Software\Classes\.mp3</code>；设置后还被别的播放器打开，就去“设置 → 应用 → 默认应用”里手动选 MAKASOUNDER。</li>
+      <li>歌词制作器是“第一遍录词、第二遍打轴”的两遍式轻量版本，没有波形图；已打轴的行可以双击跳转试听。</li>
+      <li>不支持全局媒体快捷键、托盘图标、在线歌词、封面联网获取。</li>
+      <li>笔记本 Fn 媒体键通过 Windows 标准媒体键消息处理，程序窗口或制作器在前台时生效；不抢别的播放器全局热键。</li>
+      <li>悬浮球贴边时是“悬停临时展开、移开自动缩回”；想让悬浮窗长期展开，把球拖离屏幕边缘。</li>
+      <li>为了兼容旧机器和高 DPI，程序不声明 DPI 感知，由 Windows 统一缩放；高 DPI 下会有点系统级模糊，但窗口不会被缩小或截断。</li>
+      <li>编译用 C++17（Dev-C++ 9.2.0 对 C++20 支持有限），代码不依赖 C++20 特性。</li>
+    </ul>
+
+    <p>在线版额外限制：</p>
+
+    <ul>
+      <li>客户端只支持 Windows（Win32 原生控件）；服务器支持 Windows / Linux / macOS。</li>
+      <li>客户端目前只支持 HTTP，不支持 HTTPS；公网部署建议放反向代理后面。</li>
+      <li>公开模式下任何能访问服务器的人都能搜索和下载，按需用 <code>--private</code>。</li>
+      <li>上传音乐要服主审核，不是提交完立刻上架。</li>
+      <li>在线搜索界面目前只有「流式播放」和「下载并加入列表」，旧文档里的“播放选中 / 添加选中 / 下载选中”已过时。</li>
+      <li>服务器设置里没有“公开模式开关”；公开还是私有，由服务器启动参数决定。</li>
+      <li>服务端密码以无盐 SHA-256 保存、token 仅存内存（重启服务器后要重新登录），只适合小规模 / 自用部署。</li>
+      <li>登录 token 会保存在本机 <code>settings.ini</code> 里，注意本机账户安全。</li>
+      <li>在线版版本信息里的 <code>FileDescription</code> 还写着 offline audio player，历史遗留，不影响运行。</li>
+    </ul>
+
+    <!-- ================= 许可证 ================= -->
+    <h2 id="license">许可证 <a class="anchor" href="#license">#</a></h2>
+
+    <p>应用本体无需商用许可，二开全程遵循 WTFPL v2，宽松许可，允许任意用途。</p>
+
+    <p>Copyright © 2026 MakaZS-TonZhoo</p>
+
+    <p>This work is free. You can redistribute it and/or modify it under the terms of the Do What The Fuck You Want To Public License, Version 2, as published by Sam Hocevar. See the <a href="https://github.com/Mzstongzhu/makasounder/blob/main/LICENSE">LICENSE</a> file for more details.</p>
+
+    <p>应用内音频解析播放使用 BASS 库，该音频库版权归 Un4seen Developments Ltd. 所有，免费使用完全免费；商用时按照版权方要求，需向 <a href="https://www.un4seen.com/">un4seen</a> 购买许可证。</p>
+
+    <footer class="site-footer">
+      <p>Copyright © 2026 MakaZS-TonZhoo · 遵循 WTFPL v2</p>
+      <p>This site is open source. <a href="https://github.com/Mzstongzhu/makasounder/edit/main/README.md">Improve this page</a>.</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  /* ---------- 阅读进度条 ---------- */
+  var progress = document.getElementById('progress');
+  function updateProgress() {
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var ratio = max > 0 ? doc.scrollTop / max : 0;
+    progress.style.transform = 'scaleX(' + Math.min(ratio, 1) + ')';
+  }
+
+  /* ---------- 标题锚点 ---------- */
+  document.querySelectorAll('.content h2[id], .content h3[id]').forEach(function (h) {
+    if (h.querySelector('.anchor')) return;
+    var a = document.createElement('a');
+    a.className = 'anchor';
+    a.href = '#' + h.id;
+    a.textContent = '#';
+    a.setAttribute('aria-hidden', 'true');
+    h.appendChild(a);
+  });
+
+  /* ---------- 侧边栏高亮 ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.sidebar a[href^="#"]'));
+  var entries = links.map(function (link) {
+    var id = link.getAttribute('href').slice(1);
+    return { link: link, el: document.getElementById(id) };
+  }).filter(function (o) { return o.el; });
+
+  function updateActive() {
+    var y = window.scrollY + 110;
+    var current = null;
+    for (var i = 0; i < entries.length; i++) {
+      var top = entries[i].el.getBoundingClientRect().top + window.scrollY;
+      if (top <= y) current = entries[i];
+    }
+    links.forEach(function (l) { l.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      updateProgress();
+      updateActive();
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  updateProgress();
+  updateActive();
+
+  /* ---------- 移动端菜单 ---------- */
+  var toggle = document.getElementById('menuToggle');
+  var sidebar = document.getElementById('sidebar');
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function () {
+      var open = sidebar.classList.toggle('open');
+      toggle.setAttribute('aria-label', open ? '关闭导航' : '打开导航');
+      toggle.textContent = open ? '✕' : '☰';
+    });
+    sidebar.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A' && window.innerWidth < 1024) {
+        sidebar.classList.remove('open');
+        toggle.textContent = '☰';
+        toggle.setAttribute('aria-label', '打开导航');
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (window.innerWidth >= 1024) return;
+      if (sidebar.classList.contains('open') &&
+          !sidebar.contains(e.target) && e.target !== toggle) {
+        sidebar.classList.remove('open');
+        toggle.textContent = '☰';
+        toggle.setAttribute('aria-label', '打开导航');
+      }
+    });
+  }
+})();
+  //额 竟然看到这里 其实这个页面也是ai生成的 除了前面那一小段内容和这一行注释
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"bf65771b7e2e42ae900a6830d55b25af","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
