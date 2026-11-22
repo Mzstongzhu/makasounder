@@ -1,6 +1,6 @@
 
 # [MAKASOUNDER](https://github.com/Mzstongzhu/makasounder/)
-
+注意 本文档可能过时 以实际效果为准
 MAKASOUNDER 是一个纯 Win32 的轻量音乐播放器，面向 Windows 7 / 10 / 11（32 位优先）。没有 Electron，没有 WebView，没有持续自绘刷新；主界面、播放列表、歌词、设置和歌词制作器全部使用系统原生控件。
 
 项目包含两个版本：
