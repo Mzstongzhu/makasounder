@@ -10,7 +10,7 @@
 
 你说的对，但是MAKASOUNDER 是一个纯 Win32 的轻量音乐播放器，面向 Windows 7 / 10 / 11（32 位优先）。没有 Electron，没有 WebView，没有持续自绘刷新；主界面、播放列表、歌词、设置和歌词制作器全部使用系统原生控件。
 （我不得不说 我上传的时间太晚了我已经忘了我改了什么 所以以下内容是一个与本项目无关的AI在阅读旧文档和RC文件后生成的 对不起 但是还是建议你自己去用用 毕竟都读到这了嘛 我会自己做插件的 插件的开发绝对绝对不会有任何AI插手 当然啦 你们也可以私下开发插件 总之额开源万岁我没话说了）
-项目包含两个版本，可以直接点击下载其EXE二进制文件，或者[点此下载其源码]()：
+项目包含两个版本，可以直接点击下载其EXE二进制文件，或者点此下载其源码[ZIP包](https://github.com/Mzstongzhu/makasounder/archive/refs/tags/1.0.0.1.zip)或[tar包](https://github.com/Mzstongzhu/makasounder/archive/refs/tags/1.0.0.1.tar.gz)：
 
 - [**MAKASOUNDER（离线版）**](https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER.exe)：纯本地播放器，不联网、不上传任何数据。
 - [**MAKASOUNDER-OL（在线版）**](https://github.com/Mzstongzhu/makasounder/releases/download/1.0.0.1/MAKASOUNDER-OL.exe)：在离线版全部功能之上，增加连接社区服务器、搜索歌曲、流式播放、下载、上传审核等能力。
