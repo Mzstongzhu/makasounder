@@ -3,8 +3,11 @@
 # MAKASOUNDER
 
 > **冷知识**：你可以直接访问 [GitHub 仓库](https://github.com/Mzstongzhu/makasounder) 看代码、提 Issue，或者单纯点个 Star 让作者高兴一下。
-> [*官方网站*](https://sounder.makazs.xyz/)：盘点那些最不稳定也最没用的官方网站
+
+> [*官方网站*](https://sounder.makazs.xyz/)：盘点那些最不稳定也最没用的官网
+
 > 我的软件只为了最佳的播放体验而生 如果你觉得当前版本对你而言太卡了 不妨试试其他版本 或者二开个新版本 关于许可证问题 页面底部会强调 不如现在就让我们进入正题吧
+
 你说的对，但是MAKASOUNDER 是一个纯 Win32 的轻量音乐播放器，面向 Windows 7 / 10 / 11（32 位优先）。没有 Electron，没有 WebView，没有持续自绘刷新；主界面、播放列表、歌词、设置和歌词制作器全部使用系统原生控件。
 
 项目包含两个版本：
